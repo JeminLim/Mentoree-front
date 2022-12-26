@@ -21,11 +21,11 @@ import ProgramInfo from '../views/ProgramInfo.vue'
 import ProfileBrowse from '../views/ProfileBrowse.vue'
 import ProfileEdit from '../views/ProfileEdit.vue'
 
-// OAuth관련
-import OAuthRedirect from '../components/navigation/OAuthRedirect.vue'
-
 // RestDocs
 import RestDocument from '../views/RestDocument.vue'
+
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 
 Vue.use(VueRouter)
 
@@ -34,6 +34,16 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register,
   },
   {
     path: '/mission/:missionId/board',
@@ -112,13 +122,8 @@ const routes = [
     name: 'ProgramInfo',
     component: ProgramInfo,
     meta: {
-      authRequired: false
+      authRequired: true
     }
-  },
-  {
-    path: '/login/oauth2/code/:provider',
-    name: 'OAuthRedirect',
-    component: OAuthRedirect
   },
   {
     path: '/api/documents/:name',
@@ -143,11 +148,10 @@ router.beforeEach((to, from, next) => {
         alert('Login required');
         next('/');
       } else {
-        next();
-        // if(from.path != to.path)
-        //   next();
-        // else
-        //   VueRouter.go(to);
+        if(from.path != to.path)
+          next();
+        else
+          VueRouter.go(to);
       }
     } 
     else {

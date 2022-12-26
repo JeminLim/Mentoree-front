@@ -19,7 +19,7 @@
                     <label>이름</label>
                 </aside>
                 <div class="rightSection col-md-7">
-                    <p class="infoInput" type="text" name="memberName" id="inputName"> {{this.memberName}} </p>
+                    <p class="infoInput" type="text" name="memberName" id="inputName"> {{this.username}} </p>
                 </div>
             </div>
 
@@ -34,24 +34,23 @@
 
             <div class="row d-flex">
                 <aside class="leftSection col-md-2">
-                    <label>관심분야</label>
-                </aside>
-                <div class="rightSection col-md-7" v-if="this.interests.length > 0">
-                    <p class="infoInput" type="text" name="nickname" id="inputInterest1"> 1.  {{this.interests[0]}} </p>
-                    <p class="infoInput" type="text" name="nickname" id="inputInterest2"> 2.  {{this.interests[1]}} </p>
-                    <p class="infoInput" type="text" name="nickname" id="inputInterest3"> 3.  {{this.interests[2]}} </p>
-                </div>
-                <div class="rightSection col-md-7" v-else>
-                    <p> 설정된 관심분야가 없습니다.</p>
-                </div>
-            </div>
-
-            <div class="row d-flex">
-                <aside class="leftSection col-md-2">
                     <label>경력소개</label>
                 </aside>
-                <div class="rightSection col-md-7">
-                    <p class="infoInput" type="text" name="link" id="inputCareer"> {{this.link}} </p>
+                <div class="rightSection col-md-10">
+                    <table class="w-100">
+                        <tbody>
+                        <tr>
+                            <td width="20%">기간</td>
+                            <td width="20%">회사이름</td>
+                            <td width="60%">역할</td>
+                        </tr>
+                        <tr v-for="(history, index) in histories" v-bind:key="index">
+                            <td width="20%">{{history.startDate}} ~ {{history.endDate}}</td>
+                            <td width="20%">{{history.companyName}}</td>
+                            <td width="60%">{{history.position}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -59,17 +58,17 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from '@/service/axios';
+
 export default {
     data() {
         return { 
             isLoginUser: false,
             id: '',
             email: '',
-            memberName: '',
+            username: '',
             nickname: '',
-            interests: [],
-            link: '',
+            histories: [],
         }
     },
     beforeMount() {
@@ -78,21 +77,17 @@ export default {
         if(this.isLoginUser) {
             this.id = this.$store.state.user.userInfo.id;
             this.email = this.$store.state.user.userInfo.email;
-            this.memberName = this.$store.state.user.userInfo.memberName;
+            this.username = this.$store.state.user.userInfo.username;
             this.nickname = this.$store.state.user.userInfo.nickname;
-            if(this.$store.state.user.userInfo.interests != null) this.interests = this.$store.state.user.userInfo.interests;
-            this.link = this.$store.state.user.userInfo.link;
+            this.histories = this.$store.state.user.userInfo.history;
         } else {
-            axios.get('/member-service/api/members/profile',  { params:{
-                memberId : this.$store.state.user.userInfo.id
-            }})
+            axios.get('/api/members/profiles/' + this.$route.params.userId)
             .then(res => {
-                this.id = res.data.memberId;
-                this.email = res.data.email;
-                this.memberName = res.data.memberName;
-                this.nickname = res.data.nickname;
-                this.interests = res.data.interests;
-                this.link = res.data.link;
+                this.id = res.data.member.memberId;
+                this.email = res.data.member.email;
+                this.username = res.data.member.username;
+                this.nickname = res.data.member.nickname;
+                this.histories = res.data.member.histories;
             }).catch( err => {
                 console.log(err);
             });
@@ -159,5 +154,4 @@ export default {
     color: #BBBBBB;
     pointer-events: none;
 }
-
 </style>

@@ -1,26 +1,10 @@
 module.exports= {
     outputDir: '../src/main/resources/static',
     devServer: {
-        port: 80,
+        port: 8081,
         disableHostCheck: true,
         proxy: {
-            '/member-service': {
-                target: process.env.VUE_APP_BACKEND_URL,
-                changeOrigin: true
-            },
-            '/member-auth-service': {
-                target: process.env.VUE_APP_BACKEND_URL,
-                changeOrigin: true
-            },
-            '/mentoring-service': {
-                target: process.env.VUE_APP_BACKEND_URL,
-                changeOrigin: true
-            },
-            '/reply-service': {
-                target: process.env.VUE_APP_BACKEND_URL,
-                changeOrigin: true
-            },
-            '/docs': {
+            '/api': {
                 target: process.env.VUE_APP_BACKEND_URL,
                 changeOrigin: true
             }

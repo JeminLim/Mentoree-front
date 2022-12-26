@@ -13,13 +13,13 @@
                 </form>
             </div>
         </div>
-        <div class="card my-3" v-for="reply in getReplyList" v-bind:key="reply.replyId">
+        <div class="card my-3" v-for="reply in getReplyList" v-bind:key="reply.id">
             <span class="mx-3 mt-2 reply-date">{{reply.modifiedDate}}</span>
             <div class="row my-4">
-                <div class="reply-writer col-md-1">
-                    <span class="mx-3">{{reply.writerNickname}}</span>
+                <div class="reply-writer col-md-2">
+                    <span class="mx-3">{{reply.memberNickname}}</span>
                 </div>
-                <div class="col-md-11">
+                <div class="col-md-10">
                     <span class="mx-3"> {{reply.content}}</span>
                 </div>
             </div>
@@ -37,20 +37,16 @@ export default {
     },
     methods: {
         submitReply() {
-            let data = {
+            let requestBody = {
                 boardId: this.$route.params.boardId,
-                writerId : this.$store.state.user.userInfo.id,
-                writerNickname: this.$store.state.user.userInfo.nickname,
                 content: this.$refs.content.value
             };
 
-            axios.post('/reply-service/api/replies/new', data)
+            axios.post('/api/replies/create', requestBody)
             .then(res => {
-                if(res.status == 200) {
-                    this.replyList.push(res.data.reply);
-                    alert("댓글 등록이 완료되었습니다.");
-                    this.$refs.content.value = '';
-                }
+                this.replyList.push(res.data.reply);
+                alert("댓글 등록이 완료되었습니다.");
+                this.$refs.content.value = '';
             }).catch(err => {
                 console.log(err);
             });
@@ -62,14 +58,13 @@ export default {
         }
     },
     created() {
-        axios.get('/reply-service/api/replies/list', { params:{
-            boardId : this.$route.params.boardId
-        }})
+        const boardId = this.$route.params.boardId
+        axios.get('/api/replies/list/' + boardId)
         .then(res => {
-            res.data.replyList.forEach(reply => this.replyList.push(reply));
+            this.replyList = res.data.replyList;
         }).catch(err => {
             console.log(err);
-        })
+        });
     }
 }
 </script>
@@ -78,5 +73,9 @@ export default {
 .reply-content {
     width: 95%; 
     overflow: scroll;
+}
+
+.reply-writer {
+    border-right: 2px solid rgb(93, 93, 93);
 }
 </style>

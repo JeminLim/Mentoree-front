@@ -1,9 +1,9 @@
 <template>
     <div class="container-fluid px-4">
-        <h1 class="mt-4">{{programTitle}}</h1>
+        <h1 class="mt-4">{{getProgramTitle}}</h1>
         <ol class="breadcrumb mb-4">
             <li class="breadcrumb-item active">
-                <span>현재 진행중인 미션 <router-link v-if="isMentor" class="btn btn-primary btn-sm mx-3" :to="'/program/' + programId + '/mission/create'"> 미션 생성</router-link></span>
+                <span>현재 진행중인 미션 <router-link v-if="getIsMentor" class="btn btn-primary btn-sm mx-3" :to="'/program/' + programId + '/mission/create'"> 미션 생성</router-link></span>
             </li>
         </ol>
         <div class="row">
@@ -19,8 +19,6 @@
 </template>
 
 <script>
-import axios from '@/service/axios';
-
 import CurrentMission from '@/components/main/CurrentMission';
 import PastMission from '@/components/main/PastMission'
 
@@ -37,26 +35,31 @@ export default {
             isMentor : false,
         }
     },
+    computed: {
+        getProgramTitle() {
+            return this.programTitle;
+        },
+        getIsMentor() {
+            return this.isMentor;
+        }
+
+    },
     beforeMount() {
         let programId = this.$route.params.programId;
-        let loginUserId = this.$store.state.user.userInfo.id;
-        axios.get('/mentoring-service/api/programs/' + programId)
-        .then(res => {
-            this.programTitle = res.data.programInfo.title;
-            console.log(res.data.programInfo);
-            if(res.data.programInfo.mentor != null) {
-                res.data.programInfo.mentor.forEach(m => {
-                    if(m.memberId == loginUserId) {
-                        this.isMentor = true;
-                    } 
-                });
-            } else {
-                console.log("mentor is null");
-            }
-        }).catch(err => {
-            console.log(err);
-        });
 
+        const asMentor = this.$store.state.user.userInfo.mentor;
+        const asMentee = this.$store.state.user.userInfo.mentee;
+        const findMentor = asMentor.filter(m => m.programId == programId);
+        const findMentee = asMentee.filter(m => m.programId == programId);
+
+        if(findMentor.length > 0) {
+            this.isMentor = true;
+            this.programTitle = findMentor[0].programName;
+        }
+
+        if(findMentee.length > 0) {
+            this.programTitle = findMentor.programName;
+        }
     }
 
 }

@@ -20,9 +20,18 @@
                     <font-awesome-icon :icon="['fas', 'columns']" class="collapse-icon" />내 프로그램<font-awesome-icon :icon="['fas', 'angle-down']" class="collapse-arrow" />
                 </a>
                 <b-collapse class="sidebar-item sidebar-collapse collapse-item" id="collapseProgram">
-                    <div v-for="program in participatedPrograms" v-bind:key="program.id">
+                    <div class="program-border">멘토 참여 프로그램</div>
+                    <div v-for="program in getProgramAsMentor" v-bind:key="program.programId">
                         <hr>
-                            <p class="collapse-item collapse-item-header">{{program.title}}</p>
+                            <p class="collapse-item collapse-item-header">{{program.programName}}</p>
+                            <router-link class="collapse-item nav-link" :to="'/program/' + program.programId + '/info'">프로그램 정보</router-link >
+                            <router-link class="collapse-item nav-link" :to="'/program/' + program.programId + '/mission'">미션</router-link>
+                        <hr>
+                    </div>
+                    <div class="program-border">멘티 참여 프로그램</div>
+                    <div v-for="program in getProgramAsMentee" v-bind:key="program.programId">
+                        <hr>
+                            <p class="collapse-item collapse-item-header">{{program.programName}}</p>
                             <router-link class="collapse-item nav-link" :to="'/program/' + program.programId + '/info'">프로그램 정보</router-link >
                             <router-link class="collapse-item nav-link" :to="'/program/' + program.programId + '/mission'">미션</router-link>
                         <hr>
@@ -38,8 +47,11 @@
 <script>
 export default {
     computed: {
-        participatedPrograms() {
-            return this.$store.state.user.userInfo.participatedPrograms;
+        getProgramAsMentor() {
+            return this.$store.state.user.userInfo.mentor;
+        },
+        getProgramAsMentee() {
+            return this.$store.state.user.userInfo.mentee;
         }
     }
 }
@@ -91,6 +103,33 @@ export default {
     color: black;
 }
 
+.program-border{
+    display: flex;
+    flex-basis: 100%;
+    align-items: center;
+    color: rgb(0, 0, 0);
+    font-size: 14px;
+    margin: 8px 0px;
+}
 
+.program-border::before {
+    content: "";
+    flex-grow: 1;
+    margin: 0px 16px;
+    background: rgb(0, 0, 0);
+    height: 1px;
+    font-size: 0;
+    line-height: 0px;
+}
+
+.program-border::after {
+    content: "";
+    flex-grow: 1;
+    margin: 0px 16px;
+    background: rgba(0, 0, 0);
+    height: 1px;
+    font-size: 0;
+    line-height: 0px;
+}
 
 </style>

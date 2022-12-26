@@ -2,7 +2,7 @@
 <div>
     <div v-if="getMission.length > 0">
         <div class="row">
-            <div class="col-xl-3 col-md-3 mission-card" v-for="mission in getMission" v-bind:key="mission.missionId" @click="goToBoard(mission.missionId)">
+            <div class="col-xl-3 col-md-3 mission-card" v-for="mission in getMission" v-bind:key="mission.missionId" @click="goToBoard(mission.id)">
                 <div class="card mb-4">
                     <div class="card-header">
                         <span><font-awesome-icon :icon="['fas','clone']" class="mx-3" />과거 미션</span>
@@ -12,15 +12,11 @@
                             <tbody>
                             <tr>
                                 <td class="bold" width="20%">제목</td>
-                                <td width="80%"> {{mission.missionTitle}} </td>
+                                <td width="80%"> {{mission.title}} </td>
                             </tr>
                             <tr>
-                                <td class="bold" colspan="2" width="100%">미션 내용</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" width="100%">
-                                    {{mission.content}}
-                                </td>
+                                <td class="bold" width="20%">기간</td>
+                                <td width="80%">{{mission.dueDate}}까지</td>
                             </tr>
                             </tbody>
                         </table>
@@ -58,17 +54,14 @@ export default {
         }
     },
     beforeMount() {
-        axios.get('/mentoring-service/api/missions/list', { params:{
-            programId : this.$route.params.programId,
-            isOpen: false
+        axios.get('/api/missions/list/' + this.$route.params.programId, { params: {
+            expiration: true,
         }})
         .then(res => {
-            res.data.missions.forEach(mission => this.missions.push(mission));
+            this.missions = res.data.missionList;
         }).catch(err => {
             console.log(err);
         });
-
-
     }
 }
 </script>

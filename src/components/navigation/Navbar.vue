@@ -25,6 +25,9 @@
                         <b-nav-item-dropdown text="Sign in" right no-caret>
                             <div class="drop-down-area">
                                 <div class="login-with">Sign in with</div>
+                                <b-dropdown-item v-on:click="formLogin()">
+                                    <b-button class="formLoginBtn">Sign In with Email</b-button>
+                                </b-dropdown-item>
                                 <b-dropdown-item v-on:click="googleLogin()">
                                     <img class="loginBtn" src="../../assets/btn_google_signin_dark_normal_web.png">
                                 </b-dropdown-item>
@@ -56,17 +59,16 @@ export default {
     },
     methods: {
         logout() {
-            const url = '/member-auth-service/auth/logout/' + this.$store.state.user.userInfo.id;
-            console.log(url);
-            console.log(this.$store.state.user.userInfo.id);
-            axios.post(url)
-            .then(res => {
-                console.log(res);
+            axios.post('/api/logout')
+            .then(() => {
                 this.$store.dispatch('user/logout');
-                this.$router.go('/')
+                this.$router.go('/');
             }).catch(err => {
                 console.log(err);
             })
+        },
+        formLogin() {
+            this.$router.push('/login');
         },
         goToProfile() {
             this.$router.push('/profile/' + this.$store.state.user.userInfo.id);
@@ -78,35 +80,6 @@ export default {
             } else {
                 this.$router.push('/');
             }
-        },
-        googleLogin() {
-            var url = 'https://accounts.google.com/o/oauth2/v2/auth?';
-            var scope = 'scope=' + 'profile email'
-            var type = '&response_type=code';
-            var client_id = '&client_id=652563865976-34g11qkjpf0alptlvvnemd5vqc4vk9bt.apps.googleusercontent.com'
-
-            var redirect_uri = "";
-            if(process.env.NODE_ENV == 'local')
-                redirect_uri = '&redirect_uri=http://localhost:8081/login/oauth2/code/google';
-            else
-                redirect_uri = '&redirect_uri=https://mentoree.tk/login/oauth2/code/google';
-
-            window.location.href = url + scope + type + client_id + redirect_uri;
-        },
-        naverLogin() {
-            var url = 'https://nid.naver.com/oauth2.0/authorize?';
-            var response_type = 'response_type=code';
-            var client_id = '&client_id=qnZJDNtDoNZvqONmiIkA';
-
-            var redirect_uri = "";
-            if(process.env.NODE_ENV == 'local')
-                redirect_uri = '&redirect_uri=http://localhost:8081/login/oauth2/code/naver';
-            else
-                redirect_uri = '&redirect_uri=https://mentoree.tk/login/oauth2/code/naver';
-
-            var state = '&state=oauth_state';
-
-            window.location.href = url + response_type + client_id + redirect_uri + state;
         }
     }
 }
@@ -115,6 +88,26 @@ export default {
 <style scoped>
 .nav-container {
     margin: 0;
+}
+
+.formLoginBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 95%;
+
+    outline: none;
+    background: rgba(42, 141, 241, 0.732);
+    border-radius: 3px;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.4), -3px -3px 5px rgba(0,0,0, 0.1);
+
+    color: white;
+    font: 20px bold;
+    font-weight: 600;
+    font-family: sans-serif;
+    margin: 3px;
+    padding: 10px 5px;
 }
 
 .loginBtn {
