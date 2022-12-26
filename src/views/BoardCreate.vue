@@ -13,8 +13,8 @@
                             <div class="row mb-3">
                                 <div class="col-md-10">
                                     <div class="form-floating mb-3 mb-md-0">
-                                        <input class="form-control" id="inputProgramTitle" type="text" :value="mission.missionTitle" name="missionTitle" placeholder="미션 타이틀" disabled/>
-                                        <label for="inputProgramTitle">해당 미션</label>
+                                        <input class="form-control" id="title" v-model="title" type="text" name="title" placeholder="게시글 제목" />
+                                        <label for="title">제목</label>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -26,10 +26,7 @@
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md-12">
-                                    <label class="mb-3" for="inputDesc">수행 결과 내용</label>
-                                    <div class="form-floating mb-3 height-enough">
-                                        <textarea class="form-control text-area" rows="5" ref="content" name="content" id="inputDesc" />
-                                    </div>
+                                    <Editor ref="editor" :boardId.sync="this.boardId"/>
                                 </div>
                             </div>
                             <div class="mt-2 mb-0 float-right">
@@ -45,40 +42,79 @@
 
 <script>
 import axios from '@/service/axios';
+import Editor from '@/components/main/Editor.vue';
+
 export default {
     name: 'BoardCreate',
+    components: {
+        Editor,
+    },
     data() {
         return {
-            mission: {},
+            boardId: null,
+            title : '',
+            auto_delay: 60 * 1000,
+            auto_func: null,
+            temporal : true,
         }
     },
     methods: {
         submitForm() {
-            var data = {
-                missionId : this.mission.missionId,
-                missionTitle : this.mission.missionTitle,
-                writerId : this.$store.state.user.userInfo.id,
-                writerNickname : this.$store.state.user.userInfo.nickname,
-                content : this.$refs.content.value,
+            var requestBody = {
+                missionId : this.$route.params.missionId,
+                title : this.title,
+                description : this.$refs.editor.getContent(),
             }
-            axios.post('/mentoring-service/api/boards/new', data)
+            axios.post('/api/boards/create', requestBody)
             .then(() => {
                 alert("작성 완료 되었습니다");
-                this.$router.push('/mission/' + data.missionId + '/board');              
+                this.$router.push('/mission/' + this.$route.params.missionId + '/board');              
             }).catch(err => {
                 console.log(err);
             })
+        },
+        async tempSave() {
+            var requestBody = {
+                missionId : this.$route.params.missionId,
+                title : this.title,
+                description : this.$refs.editor.getContent(),
+            }
+            await axios.post('/api/boards/create/temp', requestBody)
+            .then(res => {
+                this.boardId = res.data.boardId;
+            }).catch(err => {
+                console.log(err);
+            })
+        },
+        async loadTempBoard() {
+            const missionId = this.$route.params.missionId;
+            await axios.get('/api/boards/' + missionId + '/temp')
+            .then(res => {
+                if(res.data.writingBoard != null) {
+                    this.boardId = res.data.writingBoard.id;
+                    this.title = res.data.writingBoard.title;
+                    this.$refs.editor.setContent(res.data.writingBoard.content);
+                    this.temporal = res.data.writingBoard.temporal;
+                } 
+            }).catch(err => {
+                console.log(err);
+            });
+        },
+        auto_save() {
+            this.tempSave();
+            this.auto_func = setInterval(() => {
+                this.tempSave();
+            }, this.auto_delay);
+        } 
+    },
+    async mounted() {
+        await this.loadTempBoard();
+        if(this.temporal) {
+            await this.auto_save();
         }
     },
-    created() {
-        const missionId = this.$route.params.missionId;
-        axios.get('/mentoring-service/api/missions/' + missionId)
-        .then(res => {
-            this.mission = res.data.mission;
-        })
-        .catch(err => {
-            console.log(err);
-        });
+    beforeDestroy() {
+        clearInterval(this.auto_func);
     }
 
 }

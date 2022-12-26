@@ -11,7 +11,7 @@
                         <span><font-awesome-icon :icon="['fas','clone']" class="mx-3" />수행 내용</span>
                     </div>
                     <div class="card-body board-content">
-                        {{boardInfo.content}}
+                        <Viewer class="content-viewer" ref="viewer" />
                     </div>
                 </div>
             </div>
@@ -23,23 +23,25 @@
 <script>
 import BoardReply from '@/components/main/BoardReply';
 import axios from '@/service/axios';
+import Viewer from '@/components/main/Viewer.vue';
 
 export default {
     name: 'BoardInfo',
     components: {
         BoardReply: BoardReply,
+        Viewer,
     },
     data() {
         return {
             boardInfo: {},
         }
     },
-    beforeMount() {
+    async beforeMount() {
         let boardId = this.$route.params.boardId;
-
-        axios.get('/mentoring-service/api/boards/' + boardId)
+        await axios.get('/api/boards/' + boardId)
         .then(res => {
-            this.boardInfo = res.data.boardInfo;
+            this.boardInfo = res.data.board;
+            this.$refs.viewer.setContent(res.data.board.content);
         }).catch(err => {
             console.log(err);
         });

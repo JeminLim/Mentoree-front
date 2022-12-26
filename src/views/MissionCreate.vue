@@ -10,23 +10,15 @@
                     <div class="card-body">
                         <form action="#" method="post" v-on:submit.prevent="submitForm">
                             <div class="row mb-3">
-                                <div class="col-md-12">
+                                <div class="col-md-10">
                                     <div class="form-floating mb-3 mb-md-0">
                                         <input class="form-control" name="title" id="inputProgramTitle" type="text" ref="title" placeholder="미션 타이틀"/>
                                         <label for="inputProgramTitle">미션 타이틀</label>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md-10">
-                                    <div class="form-floating mb-3">
-                                        <input class="form-control" name="goal" id="inputGoal" type="text" ref="goal" placeholder="미션 목표" />
-                                        <label for="inputGoal">미션 목표</label>
-                                    </div>
-                                </div>
                                 <div class="col-md-2">
                                     <div class="form-floating mb-3 mb-md-0">
-                                        <b-form-datepicker id="inputDueDate" class="form-control" ref="dueDate" v-model="datePick" />
+                                        <b-form-datepicker id="inputDueDate" class="form-control" ref="dueDate" :min="min_day" v-model="datePick" />
                                         <label for="inputDueDate"> 마감기한 </label>
                                     </div>
                                 </div>
@@ -35,7 +27,7 @@
                                 <div class="col-md-12">
                                     <label class="mb-3" for="inputDesc">미션 설명</label>
                                     <div class="form-floating mb-3">
-                                        <textarea name="content" rows="5" class="form-control text-area" id="inputDesc" ref="content" type="textarea" placeholder="미션 설명"></textarea>
+                                        <Editor ref="editor" />
                                     </div>
                                 </div>
                             </div>
@@ -52,25 +44,29 @@
 
 <script>
 import axios from '@/service/axios';
+import Editor from '@/components/main/Editor.vue';
 
 export default {
     name: 'MissionCreate',
+    components: {
+        Editor,
+    },
     data() {
         return {
             datePick: '',
+            min_day: new Date(),
         }
     },
     methods: {
         submitForm() {
             const programId = this.$route.params.programId;
-            var data = {
+            var requestBody = {
                 programId : programId,
-                missionTitle: this.$refs.title.value,
-                missionGoal: this.$refs.goal.value,
-                content: this.$refs.content.value,
+                title: this.$refs.title.value,
+                description : this.$refs.editor.getContent(),
                 dueDate: this.datePick 
             }
-            axios.post('/mentoring-service/api/missions/new', data)
+            axios.post('/api/missions/create', requestBody)
             .then(() => {
                 alert("미션이 등록되었습니다.")
                 this.$router.push('/program/' + programId + '/mission')
@@ -79,8 +75,6 @@ export default {
             })
         }
     }
-
-
 }
 </script>
 

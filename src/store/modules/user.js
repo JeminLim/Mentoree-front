@@ -5,11 +5,12 @@ const user = {
                 id: '',
                 email: '',
                 nickname: '',
-                memberName: '',
-                link: '',
-                interests: [],
-                participatedPrograms: [],
+                username: '',
+                history: [],
+                mentor: [],
+                mentee: [],
             },
+        accessToken: null,
         isLogin: false
     },
     mutations: {
@@ -17,52 +18,67 @@ const user = {
             state.userInfo.id = payload.id;
             state.userInfo.email = payload.email;
             state.userInfo.nickname = payload.nickname;
-            state.userInfo.memberName = payload.memberName;
-            state.userInfo.link = payload.link;
-            if(payload.interests != null) state.userInfo.interests = payload.interests;
-            state.userInfo.participatedPrograms = payload.participatedPrograms;
+            state.userInfo.username = payload.username;
+            state.userInfo.history = payload.history;
+            state.userInfo.mentor = payload.mentor;
+            state.userInfo.mentee = payload.mentee;
+            state.accessToken = payload.accessToken;
             state.isLogin = true;
         },
-        addProgram(state, payload) {
-            state.userInfo.participatedPrograms.push(payload);
+        addMentor(state, payload) {
+            state.userInfo.mentor.push(payload);
+        },
+        addMentee(state, payload) {
+            state.userInfo.mentee.push(payload);
         },
         logout(state) {
             state.userInfo.id  = '';
             state.userInfo.email = '';
             state.userInfo.nickname = '';
-            state.userInfo.memberName = '';
-            state.userInfo.link = '';
-            state.userInfo.interests = [];
-            state.userInfo.participatedPrograms = [];
+            state.userInfo.username = '';
+            state.userInfo.history = [];
+            state.userInfo.mentor = [];
+            state.userInfo.mentee = [];
             state.isLogin = false;
         },
         update(state, payload) {
             state.userInfo.nickname = payload.nickname;
-            state.userInfo.link = payload.link;
-            state.userInfo.interests = payload.interests;
-            state.userInfo.memberName = payload.memberName;
+            state.userInfo.username = payload.username;
+            state.userInfo.history = payload.histories;
+        },
+        reissue(state, payload) {
+            state.accessToken = payload;
         }
     },
     actions: {
         loginUser: ({commit}, params) => {
             commit('loginUser', params);
          },
-         addProgram: ({commit}, params) => {
-            commit('addProgram', params);
+         addMentor: ({commit}, params) => {
+            commit('addMentor', params);
+         },
+         addMentee: ({commit}, params) => {
+            commit('addMentee', params);
          },
          logout: ({commit}) => {
             commit('logout');
          },
          update: ({commit}, params) => {
             commit('update', params);
+         },
+         reissue: ({commit}, params) => {
+            commit('reissue', params);
          }
     },
     getters: {
         GET_LOGIN_USER: function(state) {
             return state.userInfo.email;
         },
-        GET_PARTICIPATE_PROGRAM: function(state) {
-            return state.userInfo.participatedPrograms;
+        GET_PARTICIPATE_MENTOR: function(state) {
+            return state.userInfo.mentor;
+        },
+        GET_PARTICIPATE_MENTEE: function(state) {
+            return state.userInfo.mentee;
         }
     }
 }

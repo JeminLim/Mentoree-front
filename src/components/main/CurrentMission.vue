@@ -1,10 +1,10 @@
 <template>
     <div>
         <div v-if="getMission.length > 0">
-            <div class="col-xl-4 col-md-4 mission-card" v-for="mission in getMission" v-bind:key="mission.missionId" @click="goToBoard(mission.missionId)">
+            <div class="col-xl-4 col-md-4 mission-card" v-for="mission in getMission" v-bind:key="mission.id" @click="goToBoard(mission.id)">
                 <div class="card bg-white text-dark mb-4">
                     <div class="card-header">
-                        <span><font-awesome-icon :icon="['fas','clone']" class="mx-3" />미션 카드</span>
+                        <span><font-awesome-icon :icon="['fas','clone']" class="mx-2" />미션 카드</span>
                         <a class="move-board" href="#"> &#187;수행보드로 이동</a>
                     </div>
                     <div class="card-body" >
@@ -12,19 +12,11 @@
                             <tbody>
                             <tr>
                                 <td class="bold" width="20%">제목</td>
-                                <td width="80%">{{mission.missionTitle}}</td>
+                                <td width="80%">{{mission.title}}</td>
                             </tr>
                             <tr>
                                 <td class="bold" width="20%">기간</td>
                                 <td width="80%">{{mission.dueDate}}까지</td>
-                            </tr>
-                            <tr>
-                                <td class="bold" colspan="2" width="100%">미션 내용</td>
-                            </tr>
-                            <tr>
-                                <td colspan="2" width="100%">
-                                {{ mission.content}}
-                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -61,11 +53,11 @@ export default {
         }
     },
     beforeMount() {
-        axios.get('/mentoring-service/api/missions/list', { params:{
-            programId : this.$route.params.programId
+        axios.get('/api/missions/list/' + this.$route.params.programId, { params: {
+            expiration: false,
         }})
         .then(res => {
-            res.data.missions.forEach(mission => this.missions.push(mission));
+            this.missions = res.data.missionList;
         }).catch(err => {
             console.log(err);
         });
@@ -79,7 +71,7 @@ export default {
 }
 
 .move-board {
-    margin-left:60%; 
+    margin-left:40%; 
     color: #808080; 
     font-size: 0.8em;
 }

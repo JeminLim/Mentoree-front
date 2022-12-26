@@ -29,42 +29,39 @@
                         <input class="infoInput" type="text" placeHolder="사용자 이름" name="nickname" id="inputUserId" ref="nickname" v-model="nickname" />
                     </div>
                 </div>
-
-                <div class="row d-flex">
-                    <aside class="leftSection col-md-2">
-                        <label>관심분야</label>
-                    </aside>
-                    <div class="rightSection col-md-7" >
-                        <select ref="interests" name="selectInterest" v-model="selectedList[0]">
-                            <option disabled value="undefined">흥미분야선택</option>
-                            <option v-for="(item, index) in selectList" :key="index" :value="item.name" :disabled="excludeSelectedItem(item.name)">
-                                {{item.name}}
-                            </option>
-                        </select>
-                        <select ref="interests" name="selectInterest" v-model="selectedList[1]">
-                            <option disabled value="undefined">흥미분야선택</option>
-                            <option v-for="(item, index) in selectList" :key="index" :value="item.name" :disabled="excludeSelectedItem(item.name)">
-                                {{item.name}}
-                            </option>
-                        </select>
-                        <select ref="interests" name="selectInterest" v-model="selectedList[2]">
-                            <option disabled value="undefined">흥미분야선택</option>
-                            <option v-for="(item, index) in selectList" :key="index" :value="item.name" :disabled="excludeSelectedItem(item.name)">
-                                {{item.name}}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-
                 <div class="row d-flex">
                     <aside class="leftSection col-md-2">
                         <label>경력소개</label>
                     </aside>
-                    <div class="rightSection col-md-7">
-                        <textarea class="infoInput" name="link" style="height: 200px" id="inputUserDesc" ref="link" v-model="link"></textarea>
-                        <div class="additionalInfo">
-                            <p class="desc descInfo">자신의 관심분야와 관련된 경력을 알 수 있도록, 간략한 소개 및 링크를 부탁드려요</p>
-                        </div>
+                    <div class="rightSection col-md-10">
+                        <table class="w-100">
+                            <tbody>
+                                <tr>
+                                    <td class="text-center" width="30%">기간</td>
+                                    <td class="text-center" width="15%">회사이름</td>
+                                    <td class="text-center" width="35%">역할</td>
+                                    <td class="btn-right text-center" width="20%">
+                                        <b-button @click="addHistory()"><Strong>Add</Strong></b-button>
+                                    </td>
+                                </tr>
+                                <tr v-for="(history, index) in getHistories" v-bind:key="index">
+                                    <td class="d-flex w-100" width="30%">
+                                        <b-form-datepicker id="startDate" :date-format-options="{year: '2-digit', month: '2-digit', day: '2-digit'}" size="sm" placeholder="start date" class="history_element w-100" v-model="history.startDate" />
+                                        <span class="date-divider">   -   </span>
+                                        <b-form-datepicker id="endDate" :date-format-options="{year: '2-digit', month: '2-digit', day: '2-digit'}" size="sm" placeholder="end date" class="history_element w-100" v-model="history.endDate"/>
+                                    </td>
+                                    <td width="15%">
+                                        <input class="history_element w-100" type="text" placeholder="Company name" v-model="history.companyName" />    
+                                    </td>
+                                    <td width="35%">
+                                        <input class="history_element w-100" type="text" placeholder="Position" v-model="history.position" />  
+                                    </td>
+                                    <td class="btn-right text-center" width="20%">
+                                        <font-awesome-icon :icon="['fas', 'minus-circle']" class="extract-btn" @click="removeRow(index)" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="row btnRow col-md-1 mt-5" style="margin-left: 25%">
@@ -81,65 +78,71 @@ export default {
     name: 'ProfileEdit',
     data() {
         return {
-            memberId: this.$store.state.user.userInfo.id,
-            email: this.$store.state.user.userInfo.email,
-            memberName: this.$store.state.user.userInfo.memberName,
-            nickname: this.$store.state.user.userInfo.nickname,
-            interests: this.$store.state.user.userInfo.interests,
-            link: this.$store.state.user.userInfo.link,
-
-            selectLength: 3,
-            selectList: [
-                {name : '프로그래밍', value : 'IT'},
-                {name : '음악', value : 'MUSIC'},
-                {name : '인생상담', value : 'LIFE'},
-                {name : '취업', value : 'EMPLOYMENT'},
-                {name : '미술', value : 'ART'},
-            ],
-            selectedList: this.$store.state.user.userInfo.interests,
+            memberId: '',
+            email: '',
+            memberName: '',
+            nickname:'',
+            histories: [],
         }
     },
     methods: {
-        excludeSelectedItem(itemName) {
-            if(this.selectedList.includes(itemName))
-                return true;
-
-            return false;
-        },
         submitProfile() {
-            var interestList = [];
-            for(var i = 0; i < this.selectedList.length; i++) {
-                for(var k = 0; k < this.selectList.length; k++) {
-                    if(this.selectList[k].name == this.selectedList[i]) {
-                        interestList.push(this.selectList[k].value);
-                    }
-                }
-            }
-            
-            var data = {
-                memberId: this.memberId,
+            var requestBody = {
+                id: this.memberId,
                 email: this.email,
-                memberName: this.memberName,
+                username: this.memberName,
                 nickname: this.nickname,
-                interests: interestList,
-                link: this.link,
+                histories: this.histories,
             }
-            axios.post('/member-service/api/members/profile', data)
+            axios.post('/api/members/profiles', requestBody)
             .then(res => {
+                console.log(res.data.member);
                 alert("프로필 정보가 변경되었습니다.");
-                this.$store.dispatch('user/update', res.data.memberInfo, {root: true});
-                this.$router.push('/profile/' + this.email);
+                this.$store.dispatch('user/update', res.data.member);
+                this.$router.push('/profile/' + res.data.member.id);
             }).catch(err => {
                 console.log(err);
             });
+        },
+        addHistory() {
+            this.histories.push({
+                    startDate: '',
+                    endDate: '',
+                    companyName: '',
+                    position: '',
+            })
+        },
+        removeRow(index) {
+            this.histories.splice(index, 1);
         }
+    },
+    computed: {
+        getHistories() {
+            return this.histories;
+        }
+    },
+    created() {
+        this.memberId = this.$store.state.user.userInfo.id;
+        this.email = this.$store.state.user.userInfo.email;
+        this.memberName = this.$store.state.user.userInfo.username;
+        this.nickname = this.$store.state.user.userInfo.nickname;
+        if(this.$store.state.user.userInfo.history != null)
+            this.histories = this.$store.state.user.userInfo.history;
     }
+    
 }
 </script>
 
 <style scoped>
 .header-pos {
     margin-top: 3%;
+}
+.w-100 {
+    width: 100%;
+}
+
+.btn-right {
+    text-align: right;
 }
 
 .leftSection {
@@ -161,6 +164,24 @@ export default {
 	border-radius: 50%;
 }
 
+.extract-btn {
+    font-size: 30px;
+}
+.extract-btn:hover {
+    cursor: pointer;
+}
+.date-divider {
+    margin-left: 2%;
+    margin-right: 2%;
+}
+.d-block {
+    display: block;
+}
+
+.d-block input {
+    width:100%;
+}
+
 #userId {
     margin-top: 5px;
     margin-left: 10px;
@@ -178,22 +199,30 @@ export default {
     text-align: left;
 }
 
-.desc{
-    margin-bottom: 0;
-}
-
-.descInfo {
-    font-size: 12px;
-}
-
 .btnRow {
     text-align: center;
     margin: 15px 10px;
 }
 
-.disabled {
-    color: #BBBBBB;
-    pointer-events: none;
+table {
+    border-spacing: 10px;
+    border-collapse: separate;
+}
+
+.history_element{
+    border: 3px solid rgba(37, 37, 37, 0.159);
+    border-radius: 10px;
+    padding-left: 1%;
+    padding-right: 1%;
+}
+
+.history_element:focus {
+    border: 3px solid rgba(37, 37, 37, 0.756);
+}
+
+
+.text-center {
+    text-align: center;
 }
 
 </style>

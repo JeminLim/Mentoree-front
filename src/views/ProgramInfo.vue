@@ -14,7 +14,7 @@
                                 상세정보</span>
                             </div>
                             <div class="col-md-1">
-                                <router-link v-if="isHost" id="manageBtn" class="btn btn-warning btn-sm" :to="'/program/' + program.id + '/participant'" >신청자관리</router-link>
+                                <router-link v-if="isHost" id="manageBtn" class="btn btn-warning btn-sm" :to="'/program/' + programInfo.id + '/participant'" >신청자관리</router-link>
                                 <button v-if="!this.isParticipated" id="applyBtn" class="btn btn-primary btn-sm" @click="$bvModal.show('participate-modal')">참가신청</button>
                             </div>
                         </div>
@@ -23,7 +23,7 @@
                                 <tbody>
                                     <tr>
                                         <td class="bold" width="20%">제목</td>
-                                        <td width="80%">{{programInfo.title}}</td>
+                                        <td width="80%">{{programInfo.programName}}</td>
                                     </tr>
                                     <tr>
                                         <td class="bold" width="20%">카테고리</td>
@@ -40,23 +40,17 @@
                                     <tr>
                                         <td class="bold" width="20%">현재멘토</td>
                                         <td width="80%">
-                                            <div v-if="this.program.mentor != null">
-                                                <a v-for="mentorMember in this.program.mentor" v-bind:key="mentorMember.id" href="#" @click="moveToProfile(mentorMember.id)">{{mentorMember.nickname}}</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="bold" width="20%">프로그램 목표</td>
-                                        <td width="80%">
-                                            <span>{{programInfo.goal}}</span>
+                                            <a v-for="(mentor, index) in programInfo.mentorList" v-bind:key="index" href="#" @click="moveToProfile(mentor.memberId)">{{mentor.username}}</a>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="bold" colspan="2" width="100%">프로그램 설명</td>
                                     </tr>
                                     <tr>
-                                        <td colspan="2" width="100%">
-                                            {{programInfo.description}}
+                                        <td colspan="2" >
+                                            <div class="content-padding">
+                                                <Viewer class="content-viewer" ref="viewer" />
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -104,8 +98,13 @@
 
 <script>
 import axios from '@/service/axios.js';
+import Viewer from '@/components/main/Viewer.vue';
+
 export default {
     name: 'ProgramInfo',
+    components: {
+        Viewer,
+    },
     data() {
         return {
             program: {},
@@ -114,32 +113,27 @@ export default {
         }
     },
     methods: {
-        moveToProfile(email) {
-            this.$router.push('/profile/' + email);
+        moveToProfile(id) {
+            this.$router.push('/profile/' + id);
         },
         applyProgram() {
             var data = {
-                memberId: this.$store.state.user.userInfo.id,
-                nickname: this.$store.state.user.userInfo.nickname,
                 programId: this.program.id,
                 message: this.$refs.message.value,
                 role: this.$refs.role.value,
             }
 
-            axios.post('/mentoring-service/api/programs/' + this.program.id + '/join', data)
+            axios.post('/api/programs/apply', data)
             .then(res => {
                 if(res.data.result == 'success') {
                     alert("신청 완료되었습니다.");
                     this.$refs['message'].value = '';
                     this.$refs['participate-modal'].hide();
                 }
-
-                if(res.data.result == 'duplicate') {
-                    alert("이미 신청된 프로그램 입니다.");
-                    this.$refs['message'].value = '';
-                }
             }).catch(err => {
-                console.log(err);
+                if(err.response.data.code === 'D001') {
+                    alert(err.response.data.message);
+                }
             })
         }
     },
@@ -150,15 +144,27 @@ export default {
     },
     async beforeMount() {
         var programId = this.$route.params.programId;
-        const response = await axios.get('/mentoring-service/api/programs/' + programId);
-        this.program = response.data.programInfo;
-        this.isHost = response.data.isHost;
-        var participatedPrograms = this.$store.state.user.userInfo.participatedPrograms;
-        for(var i = 0; i < participatedPrograms.length; i++) {
-            if(programId == participatedPrograms[i].id) {
-                this.isParticipated = true;
-            }
+        const response = await axios.get('/api/programs/' + programId);
+        this.program = response.data.program;
+        this.$refs.viewer.setContent(response.data.program.description);
+
+        const asMentor = this.$store.state.user.userInfo.mentor;
+        const asMentee = this.$store.state.user.userInfo.mentee;
+        
+        const loginId = this.$store.state.user.userInfo.id;
+
+        const findMentor = asMentor.filter(m => m.memberId == loginId && m.programId == programId);
+        const findMentee = asMentee.filter(m => m.memberId == loginId && m.programId == programId);
+
+        if(findMentor.length > 0) {
+            this.isHost = findMentor[0].host;
+            this.isParticipated = true;
         }
+
+        if(findMentee.length > 0) {
+            this.isParticipated = true;
+        }
+
     }
 }
 </script>
@@ -176,5 +182,16 @@ export default {
 table {
     border-collapse: separate;
     border-spacing: 0 10px;
+}
+
+.content-padding{
+    border: 3px solid rgba(46, 46, 46, 0.652);
+    border-radius: 20px;
+    margin-left: 10%;
+    margin-right: 10%;
+}
+
+.content-viewer{
+    padding: 1% 3%;
 }
 </style>
